@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Architecture Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .component {
+            transition: all 0.3s ease;
+            z-index: 10; /* Ensure components are above arrows */
+            position: absolute;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .arrow {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5; /* Ensure arrows are below components */
+        }
+        
+        .data-flow {
+            stroke-dasharray: 10;
+            animation: dash 3s linear infinite;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+        
+        .highlight {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; box-shadow: 0 0 0 0 rgba(66, 153, 225, 0.5); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 10px rgba(66, 153, 225, 0); }
+            100% { opacity: 1; box-shadow: 0 0 0 0 rgba(66, 153, 225, 0); }
+        }
+        
+        #data-content p {
+            transition: opacity 0.3s ease;
+        }
+        
+        .flow-step {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .flow-step:first-child {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4 md:p-8">
+        <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <h1 class="text-3xl font-bold text-center mb-2 text-indigo-800">DevOps Architecture Visualization</h1>
+            <p class="text-center text-gray-600 mb-8">Python Flask + PostgreSQL + Redis Cache</p>
+            
+            <div class="flex justify-center mb-6">
+                <div class="inline-flex space-x-4">
+                    <button id="registerBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition">Register User Flow</button>
+                    <button id="getUserBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition">Get User Data Flow</button>
+                    <button id="resetBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">Reset</button>
+                </div>
+            </div>
+            
+            <div class="relative h-[700px] mb-8" id="visualization">
+                <!-- User -->
+                <div id="user" class="component top-[80px] left-[50px] bg-blue-100 border-2 border-blue-300 rounded-xl p-4 w-[180px]">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-center font-semibold text-blue-800">User</h3>
+                    <p class="text-center text-sm text-blue-600">Client Browser</p>
+                </div>
+                
+                <!-- Flask Frontend -->
+                <div id="flask" class="component top-[80px] left-[350px] bg-green-100 border-2 border-green-300 rounded-xl p-4 w-[200px]">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-center font-semibold text-green-800">Python Flask</h3>
+                    <p class="text-center text-sm text-green-600">Frontend API</p>
+                    <div class="mt-2 text-xs bg-green-50 p-2 rounded border border-green-200">
+                        <div id="register-endpoint" class="p-1 rounded">POST /register</div>
+                        <div id="getuser-endpoint" class="p-1 rounded">GET /getUserData</div>
+                    </div>
+                </div>
+                
+                <!-- Redis Cache -->
+                <div id="redis" class="component top-[80px] left-[650px] bg-red-100 border-2 border-red-300 rounded-xl p-4 w-[180px]">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-center font-semibold text-red-800">Redis</h3>
+                    <p class="text-center text-sm text-red-600">In-Memory Cache</p>
+                    <div class="mt-2 text-xs bg-red-50 p-2 rounded border border-red-200">
+                        <div class="p-1">Key-Value Store</div>
+                        <div class="p-1">Fast Access</div>
+                    </div>
+                </div>
+                
+                <!-- PostgreSQL DB -->
+                <div id="postgres" class="component top-[350px] left-[500px] bg-purple-100 border-2 border-purple-300 rounded-xl p-4 w-[200px]">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-center font-semibold text-purple-800">PostgreSQL</h3>
+                    <p class="text-center text-sm text-purple-600">Database</p>
+                    <div class="mt-2 text-xs bg-purple-50 p-2 rounded border border-purple-200">
+                        <div class="p-1">users table</div>
+                        <div class="p-1">Persistent Storage</div>
+                    </div>
+                </div>
+                
+                <!-- Data Panel - INCREASED HEIGHT -->
+                <div id="data-panel" class="component top-[300px] left-[50px] bg-gray-100 border-2 border-gray-300 rounded-xl p-4 w-[350px]">
+                    <h3 class="font-semibold text-gray-800 mb-2">Data Flow</h3>
+                    <div id="data-content" class="text-sm bg-white p-4 rounded h-[300px] overflow-auto border border-gray-200">
+                        <p class="text-gray-500">Click a flow button above to visualize the data path...</p>
+                    </div>
+                </div>
+                
+                <!-- SVG Arrows -->
+                <svg class="absolute top-0 left-0 w-full h-full pointer-events-none" id="arrows">
+                    <!-- User to Flask -->
+                    <path id="user-to-flask" class="arrow" d="M230,110 L350,110" stroke="#4B5563" stroke-width="2" fill="none" marker-end="url(#arrowhead)"></path>
+                    
+                    <!-- Flask to Redis -->
+                    <path id="flask-to-redis" class="arrow" d="M550,95 L650,95" stroke="#4B5563" stroke-width="2" fill="none" marker-end="url(#arrowhead)"></path>
+                    
+                    <!-- Redis to Flask -->
+                    <path id="redis-to-flask" class="arrow" d="M650,125 L550,125" stroke="#4B5563" stroke-width="2" fill="none" marker-end="url(#arrowhead)"></path>
+                    
+                    <!-- Flask to Postgres - IMPROVED CURVE -->
+                    <path id="flask-to-postgres" class="arrow" d="M450,160 C450,250 450,300 500,350" stroke="#4B5563" stroke-width="2" fill="none" marker-end="url(#arrowhead)"></path>
+                    
+                    <!-- Postgres to Flask - IMPROVED CURVE -->
+                    <path id="postgres-to-flask" class="arrow" d="M550,350 C600,300 600,250 550,160" stroke="#4B5563" stroke-width="2" fill="none" marker-end="url(#arrowhead)"></path>
+                    
+                    <!-- Redis to Postgres (via Flask) -->
+                    <path id="redis-to-postgres" class="arrow" d="M700,160 C700,250 650,300 600,350" stroke="#4B5563" stroke-width="2" fill="none" marker-end="url(#arrowhead)"></path>
+                    
+                    <!-- Arrowhead marker -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#4B5563" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="font-semibold text-gray-800 mb-2">Architecture Overview</h3>
+                <ul class="list-disc pl-5 text-gray-700 space-y-1">
+                    <li>Frontend: Python Flask API handles HTTP requests</li>
+                    <li>Database: PostgreSQL stores user data persistently</li>
+                    <li>Caching: Redis provides fast in-memory data access</li>
+                    <li>Register Flow: User data is stored directly in PostgreSQL</li>
+                    <li>Get User Flow: Checks Redis cache first, falls back to PostgreSQL if needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerBtn = document.getElementById('registerBtn');
+            const getUserBtn = document.getElementById('getUserBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const dataContent = document.getElementById('data-content');
+            
+            // Reset all highlights and animations
+            function resetVisuals() {
+                // Remove all highlights
+                document.querySelectorAll('.highlight').forEach(el => {
+                    el.classList.remove('highlight');
+                });
+                
+                // Remove all data-flow animations
+                document.querySelectorAll('.data-flow').forEach(el => {
+                    el.classList.remove('data-flow');
+                });
+                
+                // Reset data panel
+                dataContent.innerHTML = '<p class="text-gray-500">Click a flow button above to visualize the data path...</p>';
+                
+                // Reset endpoint highlights
+                document.getElementById('register-endpoint').classList.remove('bg-green-200');
+                document.getElementById('getuser-endpoint').classList.remove('bg-green-200');
+            }
+            
+            // Register flow animation
+            registerBtn.addEventListener('click', function() {
+                resetVisuals();
+                
+                // Highlight register endpoint
+                document.getElementById('register-endpoint').classList.add('bg-green-200');
+                
+                // Step 1: User to Flask
+                document.getElementById('user').classList.add('highlight');
+                document.getElementById('user-to-flask').classList.add('data-flow');
+                dataContent.innerHTML = '<div class="flow-step"><p class="font-semibold text-indigo-700">1. User Registration:</p><p class="mt-1">User submits registration data to Flask API endpoint</p></div>';
+                
+                setTimeout(() => {
+                    document.getElementById('user').classList.remove('highlight');
+                    document.getElementById('flask').classList.add('highlight');
+                    
+                    // Step 2: Flask to Postgres
+                    setTimeout(() => {
+                        document.getElementById('flask-to-postgres').classList.add('data-flow');
+                        dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-indigo-700">2. Data Storage:</p><p class="mt-1">Flask API stores user data in PostgreSQL database</p></div>';
+                        
+                        setTimeout(() => {
+                            document.getElementById('flask').classList.remove('highlight');
+                            document.getElementById('postgres').classList.add('highlight');
+                            
+                            setTimeout(() => {
+                                dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-indigo-700">3. Complete:</p><p class="mt-1">User registration successful!</p></div>';
+                            }, 1000);
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+            });
+            
+            // Get User flow animation
+            getUserBtn.addEventListener('click', function() {
+                resetVisuals();
+                
+                // Highlight getuser endpoint
+                document.getElementById('getuser-endpoint').classList.add('bg-green-200');
+                
+                // Step 1: User to Flask
+                document.getElementById('user').classList.add('highlight');
+                document.getElementById('user-to-flask').classList.add('data-flow');
+                dataContent.innerHTML = '<div class="flow-step"><p class="font-semibold text-emerald-700">1. Get User Request:</p><p class="mt-1">User requests their data from Flask API</p></div>';
+                
+                setTimeout(() => {
+                    document.getElementById('user').classList.remove('highlight');
+                    document.getElementById('flask').classList.add('highlight');
+                    
+                    // Step 2: Flask to Redis
+                    setTimeout(() => {
+                        document.getElementById('flask-to-redis').classList.add('data-flow');
+                        dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">2. Cache Check:</p><p class="mt-1">Flask API checks Redis cache first</p></div>';
+                        
+                        setTimeout(() => {
+                            document.getElementById('flask').classList.remove('highlight');
+                            document.getElementById('redis').classList.add('highlight');
+                            
+                            // Randomly decide if cache hit or miss
+                            const cacheHit = Math.random() > 0.5;
+                            
+                            if (cacheHit) {
+                                // Step 3a: Redis to Flask (Cache HIT)
+                                setTimeout(() => {
+                                    document.getElementById('redis-to-flask').classList.add('data-flow');
+                                    dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">3. Cache HIT:</p><p class="mt-1">Data found in Redis cache!</p></div>';
+                                    
+                                    setTimeout(() => {
+                                        document.getElementById('redis').classList.remove('highlight');
+                                        document.getElementById('flask').classList.add('highlight');
+                                        
+                                        // Step 4: Flask to User
+                                        setTimeout(() => {
+                                            document.getElementById('user-to-flask').classList.add('data-flow');
+                                            dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">4. Response:</p><p class="mt-1">Data returned to user from cache</p></div>';
+                                            document.getElementById('flask').classList.remove('highlight');
+                                            document.getElementById('user').classList.add('highlight');
+                                        }, 1000);
+                                    }, 1000);
+                                }, 1000);
+                            } else {
+                                // Step 3b: Redis to Postgres (Cache MISS)
+                                setTimeout(() => {
+                                    document.getElementById('redis').classList.remove('highlight');
+                                    dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">3. Cache MISS:</p><p class="mt-1">Data not found in Redis</p></div>';
+                                    
+                                    // Step 4: Flask to Postgres
+                                    setTimeout(() => {
+                                        document.getElementById('flask').classList.add('highlight');
+                                        document.getElementById('flask-to-postgres').classList.add('data-flow');
+                                        dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">4. Database Query:</p><p class="mt-1">Fetching from PostgreSQL</p></div>';
+                                        
+                                        setTimeout(() => {
+                                            document.getElementById('flask').classList.remove('highlight');
+                                            document.getElementById('postgres').classList.add('highlight');
+                                            
+                                            // Step 5: Postgres to Flask
+                                            setTimeout(() => {
+                                                document.getElementById('postgres-to-flask').classList.add('data-flow');
+                                                dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">5. Database Result:</p><p class="mt-1">Data retrieved from PostgreSQL</p></div>';
+                                                
+                                                setTimeout(() => {
+                                                    document.getElementById('postgres').classList.remove('highlight');
+                                                    document.getElementById('flask').classList.add('highlight');
+                                                    
+                                                    // Step 6: Update Redis Cache
+                                                    setTimeout(() => {
+                                                        document.getElementById('flask-to-redis').classList.add('data-flow');
+                                                        dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">6. Update Cache:</p><p class="mt-1">Storing result in Redis for future</p></div>';
+                                                        
+                                                        setTimeout(() => {
+                                                            document.getElementById('flask').classList.remove('highlight');
+                                                            document.getElementById('redis').classList.add('highlight');
+                                                            
+                                                            // Step 7: Flask to User
+                                                            setTimeout(() => {
+                                                                document.getElementById('redis').classList.remove('highlight');
+                                                                document.getElementById('flask').classList.add('highlight');
+                                                                document.getElementById('user-to-flask').classList.add('data-flow');
+                                                                dataContent.innerHTML += '<div class="flow-step"><p class="font-semibold text-emerald-700">7. Response:</p><p class="mt-1">Data returned to user</p></div>';
+                                                                
+                                                                setTimeout(() => {
+                                                                    document.getElementById('flask').classList.remove('highlight');
+                                                                    document.getElementById('user').classList.add('highlight');
+                                                                }, 1000);
+                                                            }, 1000);
+                                                        }, 1000);
+                                                    }, 1000);
+                                                }, 1000);
+                                            }, 1000);
+                                        }, 1000);
+                                    }, 1000);
+                                }, 1000);
+                            }
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+            });
+            
+            // Reset button
+            resetBtn.addEventListener('click', resetVisuals);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9690137326839361',t:'MTc1NDE2MzkzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
